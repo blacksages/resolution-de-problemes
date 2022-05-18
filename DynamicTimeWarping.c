@@ -3,5 +3,5 @@
 #include <math.h>
 
 double dtw(Sketch sketch1, Sketch sketch2, double maxDistance) {
-  // A completer
+  return 0.0;
 }

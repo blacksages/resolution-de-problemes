@@ -11,7 +11,7 @@ ALL = NNSketch
 # Executables
 all: $(ALL)
 
-NNSketch: main.o BoundedPriorityQueue.o DynamicTimeWarping.o NearestNeighbours.o Sketch.o easyppm.o
+NNSketch: main.o BoundedPriorityQueue.o DynamicTimeWarping.o NearestNeighbours.o Sketch.o easyppm.o -lm
 
 $(ALL):
 	$(CC) $(CFLAGS) -o $@ $^
