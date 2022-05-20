@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include "BoundedPriorityQueue.h"
 
 typedef struct node_t
@@ -20,6 +21,8 @@ struct bounded_priority_queue_t
 BoundedPriorityQueue *bpqCreate(size_t capacity)
 {
   BoundedPriorityQueue *bpq = malloc(sizeof(BoundedPriorityQueue));
+  if (!bpq)
+    return NULL;
   bpq->first = NULL;
   bpq->last = NULL;
   bpq->capacity = capacity;
@@ -41,18 +44,18 @@ void bpqFree(BoundedPriorityQueue *bpq)
 
 bool bpqInsert(BoundedPriorityQueue *bpq, double key, size_t value)
 {
-  if (bpq->size == bpq->capacity) // bqp est plein
+  if (bpq->size == bpq->capacity) // bpq est plein
     return false;
 
   Node *n = bpq->first, *prev = NULL, *new;
   new = malloc(sizeof(Node));
+  if (!new) // Echec malloc
+    return false;
+
   new->key = key;
   new->value = value;
   new->prev = NULL;
   new->next = NULL;
-
-  if (!new) // Echec malloc
-    return false;
 
   while (n) // On cherche un noeud ayant une clé de plus grande valeur
   {
@@ -62,7 +65,10 @@ bool bpqInsert(BoundedPriorityQueue *bpq, double key, size_t value)
     n = n->next;
   }
   if (prev) // On s'accroche au précédent
+  {
     prev->next = new;
+    new->prev = prev;
+  }
   else // Sinon on est en tête
     bpq->first = new;
   if (n) // On a remplacé un noeud
@@ -78,20 +84,33 @@ bool bpqInsert(BoundedPriorityQueue *bpq, double key, size_t value)
 
 void bpqReplaceMaximum(BoundedPriorityQueue *bpq, double key, size_t value)
 {
-  Node *n = bpq->last;
-  bpq->last->prev = NULL;
+  if (bpq->size == 0) // Rien à remplacer
+    return;
+  if (bpq->last == bpq->first) // On remplace le premier qui est aussi le dernier de la file
+    bpq->first = NULL;
+
+  Node *n = bpq->last; // On pop le dernier
+  bpq->last = n->prev;
+  if (bpq->last) // On met à jour le nouveau dernier
+    bpq->last->next = NULL;
   free(n);
   bpq->size--;
-  bpqInsert(bpq, key, value);
+  bpqInsert(bpq, key, value); // On insère la nouvelle paire
 }
 
 double bpqMaximumKey(const BoundedPriorityQueue *bpq)
 {
-  return bpq->last->value;
+  if (!bpq->last) // Pas de dernier
+    return NAN;
+
+  return bpq->last->key;
 }
 
 size_t *bpqGetItems(const BoundedPriorityQueue *bpq)
 {
+  if (bpq->size == 0) // Pas d'éléments
+    return NULL;
+
   size_t *array = calloc(bpq->size, sizeof(size_t));
   Node *n = bpq->first;
   for (size_t i = 0; i < bpq->size; i++)
